@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MarketWeb • The Ripple</title>
+    <title>MarketWeb • The Ripple Effect</title>
     <style>
         body {
             margin: 0;
@@ -17,16 +17,16 @@
             flex-direction: column;
         }
         .topbar {
-            height: 70px;
+            height: 72px;
             background: #111113;
             border-bottom: 1px solid #27272a;
             display: flex;
             align-items: center;
-            padding: 0 32px;
+            padding: 0 40px;
             justify-content: space-between;
         }
         .title {
-            font-size: 30px;
+            font-size: 31px;
             font-weight: 700;
             background: linear-gradient(to right, #10b981, #22d3ee);
             -webkit-background-clip: text;
@@ -37,9 +37,9 @@
             display: flex;
         }
         .left {
-            width: 340px;
+            width: 360px;
             background: #18181b;
-            padding: 32px 24px;
+            padding: 40px 28px;
             border-right: 1px solid #27272a;
         }
         .center {
@@ -52,7 +52,7 @@
         .right {
             width: 360px;
             background: #18181b;
-            padding: 32px 24px;
+            padding: 40px 28px;
             border-left: 1px solid #27272a;
             overflow-y: auto;
         }
@@ -62,18 +62,18 @@
         }
         .slider-label {
             color: #a1a1aa;
-            font-size: 13px;
-            margin-bottom: 8px;
+            font-size: 13.5px;
+            margin-bottom: 10px;
         }
         #pctValue {
-            font-size: 56px;
+            font-size: 58px;
             font-weight: 700;
             font-family: monospace;
             text-align: center;
-            margin: 12px 0 30px;
+            margin: 16px 0 36px;
         }
         .btn {
-            padding: 14px 28px;
+            padding: 14px 32px;
             border-radius: 12px;
             font-weight: 600;
             cursor: pointer;
@@ -90,7 +90,7 @@
 <body>
     <div class="topbar">
         <div class="title">MarketWeb</div>
-        <div style="color:#34d399;">How Fed Rate Changes Affect You</div>
+        <div style="color:#34d399;">How Fed Rate Changes Affect Your Life</div>
         <button id="glossaryBtn" class="btn btn-gray" style="width:auto;padding:10px 24px;">Glossary</button>
     </div>
 
@@ -101,7 +101,7 @@
             <input type="range" id="pctSlider" min="-3" max="3" step="0.25" value="0" style="width:100%; accent-color:#10b981;">
             <div id="pctValue">0.00%</div>
             
-            <button id="resetBtn" class="btn btn-gray">Reset to Base</button>
+            <button id="resetBtn" class="btn btn-gray">Reset to Base Case</button>
         </div>
 
         <!-- Center Canvas -->
@@ -112,12 +112,12 @@
         <!-- Right Panel -->
         <div class="right" id="infoPanel">
             <div style="color:#34d399; font-size:13px; text-transform:uppercase; letter-spacing:1px;">SELECTED VARIABLE</div>
-            <h3 id="nodeTitle" style="font-size:26px; margin:20px 0 24px 0;">Click any circle</h3>
+            <h3 id="nodeTitle" style="font-size:26px; margin:24px 0 28px 0;">Click any circle</h3>
             
             <div style="background:#27272a; padding:24px; border-radius:16px;">
                 <div style="display:flex; justify-content:space-between; align-items:baseline;">
                     <span style="color:#a1a1aa;">Projected value</span>
-                    <div id="nodeProjected" style="font-size:40px; font-weight:700; font-family:monospace;">—</div>
+                    <div id="nodeProjected" style="font-size:42px; font-weight:700; font-family:monospace;">—</div>
                 </div>
                 <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px;">
                     <span style="color:#a1a1aa;">Change from today</span>
@@ -129,30 +129,41 @@
         </div>
     </div>
 
+    <!-- Glossary Modal -->
+    <div id="glossaryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.92);align-items:center;justify-content:center;z-index:1000;">
+        <div style="background:#18181b;width:90%;max-width:860px;max-height:88vh;border-radius:20px;overflow:hidden;">
+            <div style="padding:28px;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;">
+                <h2 style="margin:0;font-size:28px;">Simple Glossary</h2>
+                <button id="closeGlossary" style="font-size:40px;color:#71717a;background:none;border:none;cursor:pointer;">×</button>
+            </div>
+            <div id="glossaryContent" style="padding:32px;overflow:auto;max-height:calc(88vh-80px);"></div>
+        </div>
+    </div>
+
     <script>
         const nodes = [
-            { id: 'fed', label: 'Fed Funds Rate', x: 330, y: 330, r: 58, color: '#10b981' },
-            { id: 'mortgage30', label: '30Y Mortgage', x: 200, y: 200, r: 42, color: '#334155' },
-            { id: 'auto_loan', label: 'Auto Loan', x: 460, y: 200, r: 42, color: '#334155' },
-            { id: 'creditcard', label: 'Credit Card', x: 140, y: 330, r: 42, color: '#334155' },
-            { id: 'inflation', label: 'Inflation', x: 520, y: 330, r: 42, color: '#334155' },
-            { id: 'unemployment', label: 'Unemployment', x: 200, y: 460, r: 42, color: '#334155' },
-            { id: 'housing', label: 'Housing Prices', x: 460, y: 460, r: 42, color: '#334155' },
-            { id: 'sp500', label: 'S&P 500', x: 330, y: 140, r: 38, color: '#334155' },
-            { id: 'gold', label: 'Gold', x: 330, y: 520, r: 38, color: '#334155' },
-            { id: 'bitcoin', label: 'Bitcoin', x: 100, y: 250, r: 38, color: '#334155' }
+            { id: 'fed', label: 'Fed Funds Rate', x: 330, y: 330, r: 62, color: '#10b981' },
+            { id: 'mortgage30', label: '30Y Mortgage', x: 200, y: 200, r: 44, color: '#334155' },
+            { id: 'auto_loan', label: 'Auto Loan', x: 460, y: 200, r: 44, color: '#334155' },
+            { id: 'creditcard', label: 'Credit Card', x: 140, y: 330, r: 44, color: '#334155' },
+            { id: 'inflation', label: 'Inflation', x: 520, y: 330, r: 44, color: '#334155' },
+            { id: 'unemployment', label: 'Unemployment', x: 200, y: 460, r: 44, color: '#334155' },
+            { id: 'housing', label: 'Housing Prices', x: 460, y: 460, r: 44, color: '#334155' },
+            { id: 'sp500', label: 'S&P 500', x: 330, y: 140, r: 40, color: '#334155' },
+            { id: 'gold', label: 'Gold', x: 330, y: 520, r: 40, color: '#334155' },
+            { id: 'bitcoin', label: 'Bitcoin', x: 100, y: 250, r: 40, color: '#334155' }
         ];
 
         function createWeb() {
             const svg = document.getElementById('canvas');
             svg.innerHTML = '';
 
-            // Concentric rings
+            // Concentric rings (soft and calm)
             for (let i = 1; i <= 4; i++) {
                 const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
                 ring.setAttribute("cx", "330");
                 ring.setAttribute("cy", "330");
-                ring.setAttribute("r", 90 + i * 75);
+                ring.setAttribute("r", 95 + i * 72);
                 ring.setAttribute("fill", "none");
                 ring.setAttribute("stroke", "#27272a");
                 ring.setAttribute("stroke-width", "32");
@@ -167,7 +178,7 @@
                 circle.setAttribute("r", node.r);
                 circle.setAttribute("fill", node.color);
                 circle.setAttribute("stroke", "#111113");
-                circle.setAttribute("stroke-width", "8");
+                circle.setAttribute("stroke-width", "9");
                 circle.style.cursor = "pointer";
                 circle.onclick = () => selectNode(node);
                 svg.appendChild(circle);
@@ -179,7 +190,7 @@
                 text.setAttribute("fill", "#fff");
                 text.setAttribute("font-size", "13");
                 text.setAttribute("font-weight", "600");
-                text.textContent = node.label.length > 13 ? node.label.substring(0,11)+"..." : node.label;
+                text.textContent = node.label.length > 13 ? node.label.substring(0,12) + ".." : node.label;
                 svg.appendChild(text);
             });
 
@@ -187,10 +198,10 @@
             const fed = document.createElementNS("http://www.w3.org/2000/svg", "circle");
             fed.setAttribute("cx", "330");
             fed.setAttribute("cy", "330");
-            fed.setAttribute("r", "58");
+            fed.setAttribute("r", "62");
             fed.setAttribute("fill", "#10b981");
             fed.setAttribute("stroke", "#34d399");
-            fed.setAttribute("stroke-width", "22");
+            fed.setAttribute("stroke-width", "24");
             svg.appendChild(fed);
         }
 
@@ -198,7 +209,35 @@
             document.getElementById('nodeTitle').textContent = node.label;
             document.getElementById('nodeProjected').innerHTML = `<span style="color:#34d399">Projected impact</span>`;
             document.getElementById('nodeDeviation').innerHTML = `<span style="color:#22c55e">Change shown here</span>`;
-            document.getElementById('nodeDesc').textContent = "Higher Fed rates usually make borrowing more expensive for this item.";
+            document.getElementById('nodeDesc').textContent = "This is how the Fed rate change affects " + node.label.toLowerCase() + ". Higher rates usually make borrowing more expensive.";
+        }
+
+        function showGlossary() {
+            const content = document.getElementById('glossaryContent');
+            content.innerHTML = `
+                <div style="border-bottom:1px solid #27272a;padding-bottom:28px;margin-bottom:28px;">
+                    <h4 style="margin:0 0 12px 0;color:#34d399;">Fed Funds Rate</h4>
+                    <p style="color:#a1a1aa;line-height:1.6;">The main interest rate set by the Federal Reserve. It influences almost every other rate in the economy.</p>
+                </div>
+                <div style="border-bottom:1px solid #27272a;padding-bottom:28px;margin-bottom:28px;">
+                    <h4 style="margin:0 0 12px 0;color:#34d399;">30Y Mortgage</h4>
+                    <p style="color:#a1a1aa;line-height:1.6;">The rate you pay on a 30-year home loan. Higher Fed rates usually push this up, making homes more expensive to buy.</p>
+                </div>
+                <div style="border-bottom:1px solid #27272a;padding-bottom:28px;margin-bottom:28px;">
+                    <h4 style="margin:0 0 12px 0;color:#34d399;">Auto Loan Rate</h4>
+                    <p style="color:#a1a1aa;line-height:1.6;">The interest rate on car loans. Higher Fed rates make monthly car payments more expensive.</p>
+                </div>
+                <div style="border-bottom:1px solid #27272a;padding-bottom:28px;margin-bottom:28px;">
+                    <h4 style="margin:0 0 12px 0;color:#34d399;">Credit Card Rate</h4>
+                    <p style="color:#a1a1aa;line-height:1.6;">The interest you pay on credit card balances. This rate usually rises quickly when the Fed hikes rates.</p>
+                </div>
+                <!-- Add more in next iteration if you like -->
+            `;
+            document.getElementById('glossaryModal').style.display = 'flex';
+        }
+
+        function hideGlossary() {
+            document.getElementById('glossaryModal').style.display = 'none';
         }
 
         window.onload = function() {
@@ -208,10 +247,8 @@
                 document.getElementById('pctValue').textContent = (this.value >= 0 ? '+' : '') + this.value + '%';
             });
 
-            document.getElementById('glossaryBtn').addEventListener('click', () => {
-                alert("Glossary coming in next update.\n\nThis tool shows how Fed rate changes ripple out to affect your mortgage, car loans, credit cards, and daily life.");
-            });
-
+            document.getElementById('glossaryBtn').addEventListener('click', showGlossary);
+            document.getElementById('closeGlossary').addEventListener('click', hideGlossary);
             document.getElementById('resetBtn').addEventListener('click', () => {
                 document.getElementById('pctSlider').value = 0;
                 document.getElementById('pctValue').textContent = '0.00%';
