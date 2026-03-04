@@ -27,7 +27,7 @@
         <div class="sidebar flex">
             <div class="header">
                 <div class="title">MarketWeb</div>
-                <div style="color:#34d399;font-size:14px;">How Fed Rate Changes Affect You</div>
+                <div style="color:#34d399;font-size:14px;">Live FRED Data • The Ripple Effect</div>
             </div>
 
             <div style="padding:24px;">
@@ -64,13 +64,13 @@
 
         <div class="main">
             <div class="topbar">
-                <div style="color:#34d399;">March 2026 FRED base values</div>
+                <div style="color:#34d399;">Live FRED Data • March 2026</div>
                 <button id="loadBtn" class="btn btn-green">LOAD GRAPH NOW</button>
                 <button id="glossaryBtn" class="btn btn-gray">Glossary</button>
             </div>
             <div style="flex:1;position:relative;">
                 <div id="cy"></div>
-                <div id="status" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#34d399;font-size:18px;pointer-events:none;">Loading graph...</div>
+                <div id="status" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#34d399;font-size:18px;pointer-events:none;">Loading live FRED data...</div>
             </div>
         </div>
     </div>
@@ -87,11 +87,7 @@
     </div>
 
     <script>
-        // ================== PUT YOUR FRED API KEY HERE ==================
-        const FRED_API_KEY = "9f45a78e4dd1fb1bad2d464b7db83a05
-
-";   // ←←← CHANGE THIS
-        // =================================================================
+        const FRED_API_KEY = "9f45a78e4dd1fb1bad2d464b7db83a05";
 
         let cy = null;
         let currentPct = 0;
@@ -101,8 +97,8 @@
         const fredSeries = {
             fed: "FEDFUNDS",
             mortgage30: "MORTGAGE30US",
-            auto_loan: "AUTO",           // approximate
-            creditcard: "CC",            // approximate
+            auto_loan: "TERMCBAUTO",
+            creditcard: "CC",
             inflation: "CPIAUCSL",
             unemployment: "UNRATE",
             housing: "CSUSHPISA",
@@ -111,44 +107,142 @@
             bitcoin: "CBBTCUSD"
         };
 
-        // Default fallback values (used if API fails)
-        const fallbackBase = { fed: 3.75, mortgage30: 6.45, auto_loan: 7.6, creditcard: 20.8, inflation: 2.7, unemployment: 4.1, housing: 0, sp500: 0, gold: 0, bitcoin: 0 };
+        let currentBase = { fed: 3.75, mortgage30: 6.45, auto_loan: 7.6, creditcard: 20.8, inflation: 2.7, unemployment: 4.1, housing: 0, sp500: 0, gold: 0, bitcoin: 0 };
 
-        // Impact coefficients (same as before)
         const impactCoeff = { mortgage30: 0.85, auto_loan: 0.80, creditcard: 0.65, inflation: -0.58, unemployment: 0.32, housing: -1.2, sp500: -1.8, gold: -0.75, bitcoin: -3.8 };
-
         const nodeLabels = { fed: "Fed Funds Rate", mortgage30: "30Y Mortgage", auto_loan: "Auto Loan Rate", creditcard: "Credit Card Rate", inflation: "Inflation", unemployment: "Unemployment Rate", housing: "Housing Prices", sp500: "S&P 500", gold: "Gold Price", bitcoin: "Bitcoin" };
-        const descriptions = { /* same as before */ };
+        const descriptions = { fed: "The Federal Reserve's key interest rate — the most powerful lever in the economy.", mortgage30: "Average 30-year home loan rate — directly impacts monthly mortgage payments.", auto_loan: "Average car loan rate — makes big-ticket purchases more or less affordable.", creditcard: "Average credit card interest rate — affects millions of households' revolving debt.", inflation: "Overall price increase — the Fed raises rates to fight high inflation.", unemployment: "National unemployment rate — tends to rise after sustained rate hikes.", housing: "Home price growth — higher rates cool buyer demand and slow price increases.", sp500: "Broad U.S. stock market index — sensitive to changes in borrowing costs.", gold: "Gold price performance — often rises when rates fall (safe-haven effect).", bitcoin: "Leading cryptocurrency — high-beta asset that amplifies rate environment moves." };
+        const relativeChangeNodes = ['sp500','housing','gold','bitcoin'];
 
-        // ... (rest of the code remains the same as the last working version you had, but with real data loading added)
-
-        // Real data loading function
-        async function loadRealFREDData() {
+        async function loadRealData() {
+            document.getElementById('status').innerHTML = 'Fetching latest FRED data...';
             for (let key in fredSeries) {
                 try {
                     const res = await fetch(`https://api.stlouisfed.org/fred/series/observations?series_id=${fredSeries[key]}&api_key=${FRED_API_KEY}&file_type=json&limit=1&sort_order=desc`);
                     const data = await res.json();
-                    if (data.observations && data.observations[0]) {
+                    if (data.observations && data.observations[0] && data.observations[0].value !== '.') {
                         const value = parseFloat(data.observations[0].value);
-                        if (!isNaN(value)) fallbackBase[key] = value;
+                        if (!isNaN(value)) currentBase[key] = value;
                     }
                 } catch(e) {}
             }
-            // Reload graph with real data
             loadGraph();
         }
 
-        // Rest of the code (loadGraph, updateImpacts, etc.) remains the same as your last working version
-        // ... (I can send the full file if you confirm you have the key)
+        function loadGraph() {
+            document.getElementById('status').innerHTML = 'Loading graph...';
+            if (cy) cy.destroy();
+            cy = null;
 
-        window.onload = function() {
-            if (FRED_API_KEY !== "YOUR_FRED_API_KEY_HERE") {
-                loadRealFREDData();
-            } else {
-                loadGraph(); // fallback to static
+            cy = cytoscape({
+                container: document.getElementById('cy'),
+                elements: elements,
+                style: [{
+                    selector: 'node',
+                    style: { 'shape': 'ellipse', 'width': 'data(size)', 'height': 'data(size)', 'background-color': 'data(color)', 'background-opacity': 0.95, 'border-width': 'data(borderWidth)', 'border-color': '#e2e8f0', 'label': 'data(label)', 'font-size': 14, 'color': '#fff', 'text-valign': 'center', 'text-halign': 'center', 'text-wrap': 'wrap', 'text-max-width': '130px', 'text-background-color': '#0f172a', 'text-background-opacity': 0.85, 'text-background-padding': 8 }
+                }, {
+                    selector: '#fed',
+                    style: { 'width': 118, 'height': 118, 'background-color': '#10b981', 'border-width': 16, 'border-color': '#34d399' }
+                }, {
+                    selector: 'edge',
+                    style: { 'width': 3, 'line-color': '#475569', 'target-arrow-shape': 'triangle', 'target-arrow-color': '#64748b', 'curve-style': 'bezier', 'line-style': 'dashed', 'line-dash-pattern': [12, 8] }
+                }],
+                layout: { name: 'cose', idealEdgeLength: 160, nodeRepulsion: 22000, gravity: 1.8, animate: false }
+            });
+
+            cy.on('tap', 'node', function(evt) {
+                selectedNodeId = evt.target.id();
+                updateSidePanel();
+            });
+
+            setTimeout(() => {
+                if (cy) {
+                    const fed = cy.getElementById('fed');
+                    fed.position({ x: cy.width() / 2, y: cy.height() / 2 });
+                    fed.lock();
+                    cy.fit(null, 110);
+                    cy.resize();
+                    document.getElementById('status').style.display = 'none';
+                }
+            }, 800);
+        }
+
+        function updateSidePanel() {
+            if (!selectedNodeId) return;
+            const id = selectedNodeId;
+            document.getElementById('nodeTitle').textContent = nodeLabels[id];
+            const baseNum = currentBase[id] || 0;
+            const imp = (id === 'fed') ? currentPct : ((impactCoeff[id] || 0) * currentPct);
+            const projectedNum = relativeChangeNodes.indexOf(id) !== -1 ? imp : (baseNum + imp);
+            const devStr = (imp >= 0 ? '↑' : '↓') + Math.abs(imp).toFixed(2) + '%';
+            const devColor = imp >= 0 ? '#ef4444' : '#22c55e';
+            document.getElementById('currentRate').textContent = baseNum.toFixed(2) + '%';
+            document.getElementById('sixMonth').innerHTML = `<span style="color:${devColor}">${projectedNum.toFixed(2)}%</span>`;
+            document.getElementById('twelveMonth').innerHTML = `<span style="color:${devColor}">${(projectedNum * 1.25).toFixed(2)}%</span>`;
+            document.getElementById('nodeDesc').textContent = descriptions[id];
+        }
+
+        function updateImpacts(pct) {
+            currentPct = parseFloat(pct);
+            const display = (currentPct >= 0 ? '+' : '') + currentPct.toFixed(2) + '%';
+            document.getElementById('pctValue').textContent = display;
+            document.getElementById('pctValue').style.color = currentPct >= 0 ? '#ef4444' : '#34d399';
+            if (cy) {
+                const delta = currentPct;
+                cy.nodes().forEach(node => {
+                    const id = node.id();
+                    let impactStr = '0.00%';
+                    let color = '#334155';
+                    let size = id === 'fed' ? 118 : 88;
+                    let borderW = 8;
+                    if (id === 'fed') {
+                        impactStr = (currentPct >= 0 ? '↑' : '↓') + Math.abs(currentPct).toFixed(2) + '%';
+                        color = currentPct >= 0 ? '#ef4444' : '#22c55e';
+                    } else if (impactCoeff[id]) {
+                        const imp = impactCoeff[id] * delta;
+                        const abs = Math.abs(imp);
+                        impactStr = (imp >= 0 ? '↑' : '↓') + abs.toFixed(1) + '%';
+                        color = imp >= 0 ? '#ef4444' : '#22c55e';
+                        size = 88 + abs * 17;
+                        borderW = 8 + abs * 2;
+                    }
+                    node.data({ size: Math.min(Math.max(size, 82), 190), color, impactStr, impactColor: color, borderWidth: borderW });
+                });
             }
-        };
-    </script>
-</body>
-</html>
+            if (selectedNodeId) updateSidePanel();
+        }
 
+        function resetSimulation() {
+            document.getElementById('pctSlider').value = 0;
+            updateImpacts(0);
+        }
+
+        function showGlossary() {
+            const modal = document.getElementById('glossaryModal');
+            const content = document.getElementById('glossaryContent');
+            content.innerHTML = '';
+            Object.keys(nodeLabels).forEach(key => {
+                const div = document.createElement('div');
+                div.style.borderBottom = '1px solid #27272a';
+                div.style.paddingBottom = '32px';
+                div.innerHTML = `<h4 style="font-size:20px;font-weight:600;margin-bottom:12px;">${nodeLabels[key]}</h4><p style="color:#a1a1aa;line-height:1.6;">${descriptions[key]}</p>`;
+                content.appendChild(div);
+            });
+            modal.style.display = 'flex';
+        }
+
+        function hideGlossary() {
+            document.getElementById('glossaryModal').style.display = 'none';
+        }
+
+        const elements = [ /* same elements as before */ 
+            { data: { id: 'fed', label: nodeLabels.fed, group: 'policy', size: 118, color: '#10b981', borderWidth: 16 } },
+            { data: { id: 'mortgage30', label: nodeLabels.mortgage30, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'auto_loan', label: nodeLabels.auto_loan, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'creditcard', label: nodeLabels.creditcard, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'inflation', label: nodeLabels.inflation, group: 'macro', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'unemployment', label: nodeLabels.unemployment, group: 'macro', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'housing', label: nodeLabels.housing, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'sp500', label: nodeLabels.sp500, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'gold', label: nodeLabels.gold, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: {
