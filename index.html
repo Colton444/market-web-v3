@@ -57,8 +57,8 @@
             overflow-y: auto;
         }
         #canvas {
-            width: 640px;
-            height: 640px;
+            width: 660px;
+            height: 660px;
         }
         .slider-label {
             color: #a1a1aa;
@@ -90,7 +90,7 @@
 <body>
     <div class="topbar">
         <div class="title">MarketWeb</div>
-        <div style="color:#34d399;">March 2026 • How Rate Changes Affect You</div>
+        <div style="color:#34d399;">How Fed Rate Changes Affect You</div>
         <button id="glossaryBtn" class="btn btn-gray" style="width:auto;padding:10px 24px;">Glossary</button>
     </div>
 
@@ -101,12 +101,12 @@
             <input type="range" id="pctSlider" min="-3" max="3" step="0.25" value="0" style="width:100%; accent-color:#10b981;">
             <div id="pctValue">0.00%</div>
             
-            <button id="resetBtn" class="btn btn-gray">Reset to Base Case</button>
+            <button id="resetBtn" class="btn btn-gray">Reset to Base</button>
         </div>
 
         <!-- Center Canvas -->
         <div class="center">
-            <svg id="canvas" width="640" height="640"></svg>
+            <svg id="canvas" width="660" height="660"></svg>
         </div>
 
         <!-- Right Panel -->
@@ -129,46 +129,32 @@
         </div>
     </div>
 
-    <!-- Glossary Modal -->
-    <div id="glossaryModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:1000;">
-        <div style="background:#18181b; width:90%; max-width:860px; max-height:88vh; border-radius:20px; overflow:hidden;">
-            <div style="padding:28px; border-bottom:1px solid #27272a; display:flex; justify-content:space-between; align-items:center;">
-                <h2 style="margin:0; font-size:28px;">Simple Glossary</h2>
-                <button id="closeGlossary" style="font-size:40px; color:#71717a; background:none; border:none; cursor:pointer;">×</button>
-            </div>
-            <div id="glossaryContent" style="padding:32px; overflow:auto; max-height:calc(88vh - 80px);"></div>
-        </div>
-    </div>
-
     <script>
-        // Consumer-focused nodes
         const nodes = [
-            { id: 'fed', label: 'Fed Funds Rate', x: 320, y: 320, r: 58, color: '#10b981' },
-            { id: 'treasury2', label: '2Y Treasury', x: 180, y: 180, r: 42, color: '#334155' },
-            { id: 'prime', label: 'Prime Rate', x: 460, y: 180, r: 42, color: '#334155' },
-            { id: 'mortgage30', label: '30Y Mortgage', x: 120, y: 320, r: 42, color: '#334155' },
-            { id: 'auto_loan', label: 'Auto Loan', x: 520, y: 320, r: 42, color: '#334155' },
-            { id: 'creditcard', label: 'Credit Card', x: 180, y: 460, r: 42, color: '#334155' },
-            { id: 'inflation', label: 'Inflation', x: 320, y: 120, r: 38, color: '#334155' },
-            { id: 'unemployment', label: 'Unemployment', x: 320, y: 520, r: 38, color: '#334155' },
-            { id: 'housing', label: 'Housing Prices', x: 80, y: 240, r: 35, color: '#334155' },
-            { id: 'sp500', label: 'S&P 500', x: 560, y: 240, r: 35, color: '#334155' },
-            { id: 'gold', label: 'Gold', x: 150, y: 420, r: 35, color: '#334155' },
-            { id: 'bitcoin', label: 'Bitcoin', x: 490, y: 420, r: 35, color: '#334155' }
+            { id: 'fed', label: 'Fed Funds Rate', x: 330, y: 330, r: 58, color: '#10b981' },
+            { id: 'mortgage30', label: '30Y Mortgage', x: 200, y: 200, r: 42, color: '#334155' },
+            { id: 'auto_loan', label: 'Auto Loan', x: 460, y: 200, r: 42, color: '#334155' },
+            { id: 'creditcard', label: 'Credit Card', x: 140, y: 330, r: 42, color: '#334155' },
+            { id: 'inflation', label: 'Inflation', x: 520, y: 330, r: 42, color: '#334155' },
+            { id: 'unemployment', label: 'Unemployment', x: 200, y: 460, r: 42, color: '#334155' },
+            { id: 'housing', label: 'Housing Prices', x: 460, y: 460, r: 42, color: '#334155' },
+            { id: 'sp500', label: 'S&P 500', x: 330, y: 140, r: 38, color: '#334155' },
+            { id: 'gold', label: 'Gold', x: 330, y: 520, r: 38, color: '#334155' },
+            { id: 'bitcoin', label: 'Bitcoin', x: 100, y: 250, r: 38, color: '#334155' }
         ];
 
-        function createRippleWeb() {
+        function createWeb() {
             const svg = document.getElementById('canvas');
             svg.innerHTML = '';
 
             // Concentric rings
             for (let i = 1; i <= 4; i++) {
                 const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                ring.setAttribute("cx", "320");
-                ring.setAttribute("cy", "320");
+                ring.setAttribute("cx", "330");
+                ring.setAttribute("cy", "330");
                 ring.setAttribute("r", 90 + i * 75);
                 ring.setAttribute("fill", "none");
-                ring.setAttribute("stroke", i === 4 ? "#10b98122" : "#27272a");
+                ring.setAttribute("stroke", "#27272a");
                 ring.setAttribute("stroke-width", "32");
                 svg.appendChild(ring);
             }
@@ -193,14 +179,14 @@
                 text.setAttribute("fill", "#fff");
                 text.setAttribute("font-size", "13");
                 text.setAttribute("font-weight", "600");
-                text.textContent = node.label.length > 13 ? node.label.substring(0,11) + ".." : node.label;
+                text.textContent = node.label.length > 13 ? node.label.substring(0,11)+"..." : node.label;
                 svg.appendChild(text);
             });
 
-            // Center Fed Orb
+            // Center Fed orb
             const fed = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            fed.setAttribute("cx", "320");
-            fed.setAttribute("cy", "320");
+            fed.setAttribute("cx", "330");
+            fed.setAttribute("cy", "330");
             fed.setAttribute("r", "58");
             fed.setAttribute("fill", "#10b981");
             fed.setAttribute("stroke", "#34d399");
@@ -210,20 +196,20 @@
 
         function selectNode(node) {
             document.getElementById('nodeTitle').textContent = node.label;
-            document.getElementById('nodeProjected').innerHTML = `<span style="color:#34d399">Base + impact</span>`;
+            document.getElementById('nodeProjected').innerHTML = `<span style="color:#34d399">Projected impact</span>`;
             document.getElementById('nodeDeviation').innerHTML = `<span style="color:#22c55e">Change shown here</span>`;
-            document.getElementById('nodeDesc').textContent = node.desc || "This metric is directly affected by Fed rate decisions.";
+            document.getElementById('nodeDesc').textContent = "Higher Fed rates usually make borrowing more expensive for this item.";
         }
 
         window.onload = function() {
-            createRippleWeb();
+            createWeb();
 
             document.getElementById('pctSlider').addEventListener('input', function() {
                 document.getElementById('pctValue').textContent = (this.value >= 0 ? '+' : '') + this.value + '%';
             });
 
             document.getElementById('glossaryBtn').addEventListener('click', () => {
-                alert("Glossary coming in next update.\n\nThis tool shows how changes in the Fed rate ripple out to affect your mortgage, car payments, credit cards, and daily life.");
+                alert("Glossary coming in next update.\n\nThis tool shows how Fed rate changes ripple out to affect your mortgage, car loans, credit cards, and daily life.");
             });
 
             document.getElementById('resetBtn').addEventListener('click', () => {
