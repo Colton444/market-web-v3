@@ -5,109 +5,171 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>MarketWeb • The Ripple</title>
     <style>
-        body { margin:0; padding:0; height:100vh; overflow:hidden; background:#0a0a0a; color:#e2e8f0; font-family:system-ui,sans-serif; }
-        .flex { display:flex; }
-        .sidebar { width:360px; background:#18181b; border-right:1px solid #27272a; flex-direction:column; }
-        .header { padding:32px 24px 24px; border-bottom:1px solid #27272a; }
-        .title { font-size:32px; font-weight:700; background:linear-gradient(to right,#10b981,#22d3ee); -webkit-background-clip:text; -webkit-text-fill-color:transparent; }
-        .main { flex:1; position:relative; }
-        .topbar { height:64px; background:#18181b; border-bottom:1px solid #27272a; padding:0 24px; align-items:center; justify-content:space-between; }
-        #canvas { position:absolute; top:50%; left:50%; transform:translate(-50%,-50%); width:660px; height:660px; }
-        .btn { padding:12px 28px; border-radius:12px; font-weight:600; cursor:pointer; transition:all 0.2s; }
-        .btn-green { background:#10b981; color:white; }
-        .btn-green:hover { background:#34d399; }
-        .btn-gray { background:#27272a; color:#e2e8f0; }
-        .btn-gray:hover { background:#3f3f46; }
-        .panel { margin:24px; background:#18181b; border:1px solid #27272a; border-radius:16px; padding:24px; flex:1; overflow:auto; }
+        body {
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            overflow: hidden;
+            background: #0a0a0a;
+            color: #e2e8f0;
+            font-family: system-ui, sans-serif;
+            display: flex;
+            flex-direction: column;
+        }
+        .topbar {
+            height: 70px;
+            background: #111113;
+            border-bottom: 1px solid #27272a;
+            display: flex;
+            align-items: center;
+            padding: 0 32px;
+            justify-content: space-between;
+        }
+        .title {
+            font-size: 30px;
+            font-weight: 700;
+            background: linear-gradient(to right, #10b981, #22d3ee);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .main {
+            flex: 1;
+            display: flex;
+        }
+        .left {
+            width: 340px;
+            background: #18181b;
+            padding: 32px 24px;
+            border-right: 1px solid #27272a;
+        }
+        .center {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .right {
+            width: 360px;
+            background: #18181b;
+            padding: 32px 24px;
+            border-left: 1px solid #27272a;
+            overflow-y: auto;
+        }
+        #canvas {
+            width: 640px;
+            height: 640px;
+        }
+        .slider-label {
+            color: #a1a1aa;
+            font-size: 13px;
+            margin-bottom: 8px;
+        }
+        #pctValue {
+            font-size: 56px;
+            font-weight: 700;
+            font-family: monospace;
+            text-align: center;
+            margin: 12px 0 30px;
+        }
+        .btn {
+            padding: 14px 28px;
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            width: 100%;
+            margin-top: 16px;
+        }
+        .btn-green { background: #10b981; color: white; }
+        .btn-green:hover { background: #34d399; }
+        .btn-gray { background: #27272a; color: #e2e8f0; }
+        .btn-gray:hover { background: #3f3f46; }
     </style>
 </head>
 <body>
-    <div class="flex h-screen">
-        <!-- Sidebar -->
-        <div class="sidebar flex">
-            <div class="header">
-                <div class="title">MarketWeb</div>
-                <div style="color:#34d399;font-size:14px;">The Ripple Effect</div>
-            </div>
+    <div class="topbar">
+        <div class="title">MarketWeb</div>
+        <div style="color:#34d399;">March 2026 • How Rate Changes Affect You</div>
+        <button id="glossaryBtn" class="btn btn-gray" style="width:auto;padding:10px 24px;">Glossary</button>
+    </div>
 
-            <div style="padding:24px;">
-                <div style="color:#a1a1aa;font-size:13px;margin-bottom:8px;">FED RATE CHANGE (%)</div>
-                <input type="range" id="pctSlider" min="-3" max="3" step="0.25" value="0" style="width:100%;accent-color:#10b981;">
-                <div id="pctValue" style="margin-top:20px;font-family:monospace;font-size:52px;font-weight:700;text-align:center;">0.00%</div>
-            </div>
-
-            <div id="infoPanel" class="panel">
-                <div style="color:#34d399;font-size:11px;text-transform:uppercase;letter-spacing:1px;margin-bottom:8px;">SELECTED VARIABLE</div>
-                <h3 id="nodeTitle" style="font-size:24px;font-weight:600;margin:0 0 20px 0;">Click any circle</h3>
-                <div style="background:#27272a;padding:20px;border-radius:12px;">
-                    <div style="display:flex;justify-content:space-between;align-items:baseline;">
-                        <span style="color:#a1a1aa;font-size:13px;">Projected value</span>
-                        <div id="nodeProjected" style="font-family:monospace;font-size:42px;font-weight:700;">—</div>
-                    </div>
-                    <div style="display:flex;justify-content:space-between;align-items:baseline;margin-top:16px;">
-                        <span style="color:#a1a1aa;font-size:13px;">Deviation from base</span>
-                        <div id="nodeDeviation" style="font-family:monospace;font-size:28px;font-weight:600;">—</div>
-                    </div>
-                    <div id="nodeBase" style="margin-top:20px;color:#71717a;font-size:13px;">Base case: —</div>
-                </div>
-                <p id="nodeDesc" style="margin-top:28px;color:#a1a1aa;line-height:1.5;"></p>
-            </div>
-
-            <div style="padding:24px;border-top:1px solid #27272a;">
-                <button id="resetBtn" class="btn btn-gray w-full">Reset to Base</button>
-            </div>
+    <div class="main">
+        <!-- Left Sidebar -->
+        <div class="left">
+            <div class="slider-label">FED RATE CHANGE (%)</div>
+            <input type="range" id="pctSlider" min="-3" max="3" step="0.25" value="0" style="width:100%; accent-color:#10b981;">
+            <div id="pctValue">0.00%</div>
+            
+            <button id="resetBtn" class="btn btn-gray">Reset to Base Case</button>
         </div>
 
-        <!-- Center Area -->
-        <div class="main">
-            <div class="topbar">
-                <div style="color:#34d399;">March 2026 FRED base values</div>
-                <button id="glossaryBtn" class="btn btn-gray">Glossary</button>
+        <!-- Center Canvas -->
+        <div class="center">
+            <svg id="canvas" width="640" height="640"></svg>
+        </div>
+
+        <!-- Right Panel -->
+        <div class="right" id="infoPanel">
+            <div style="color:#34d399; font-size:13px; text-transform:uppercase; letter-spacing:1px;">SELECTED VARIABLE</div>
+            <h3 id="nodeTitle" style="font-size:26px; margin:20px 0 24px 0;">Click any circle</h3>
+            
+            <div style="background:#27272a; padding:24px; border-radius:16px;">
+                <div style="display:flex; justify-content:space-between; align-items:baseline;">
+                    <span style="color:#a1a1aa;">Projected value</span>
+                    <div id="nodeProjected" style="font-size:40px; font-weight:700; font-family:monospace;">—</div>
+                </div>
+                <div style="display:flex; justify-content:space-between; align-items:baseline; margin-top:20px;">
+                    <span style="color:#a1a1aa;">Change from today</span>
+                    <div id="nodeDeviation" style="font-size:26px; font-weight:600; font-family:monospace;">—</div>
+                </div>
             </div>
-            <svg id="canvas" width="660" height="660"></svg>
+
+            <p id="nodeDesc" style="margin-top:32px; line-height:1.7; color:#a1a1aa; font-size:15px;"></p>
         </div>
     </div>
 
     <!-- Glossary Modal -->
-    <div id="glossaryModal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.9);align-items:center;justify-content:center;z-index:1000;">
-        <div style="background:#18181b;width:90%;max-width:860px;max-height:88vh;border-radius:20px;overflow:hidden;">
-            <div style="padding:28px;border-bottom:1px solid #27272a;display:flex;justify-content:space-between;align-items:center;">
-                <h2 style="margin:0;font-size:28px;">Simple Glossary</h2>
-                <button id="closeGlossary" style="font-size:40px;color:#71717a;background:none;border:none;cursor:pointer;">×</button>
+    <div id="glossaryModal" style="display:none; position:fixed; inset:0; background:rgba(0,0,0,0.92); align-items:center; justify-content:center; z-index:1000;">
+        <div style="background:#18181b; width:90%; max-width:860px; max-height:88vh; border-radius:20px; overflow:hidden;">
+            <div style="padding:28px; border-bottom:1px solid #27272a; display:flex; justify-content:space-between; align-items:center;">
+                <h2 style="margin:0; font-size:28px;">Simple Glossary</h2>
+                <button id="closeGlossary" style="font-size:40px; color:#71717a; background:none; border:none; cursor:pointer;">×</button>
             </div>
-            <div id="glossaryContent" style="padding:32px;overflow:auto;max-height:calc(88vh - 80px);"></div>
+            <div id="glossaryContent" style="padding:32px; overflow:auto; max-height:calc(88vh - 80px);"></div>
         </div>
     </div>
 
     <script>
+        // Consumer-focused nodes
         const nodes = [
-            { id: 'fed', label: 'Fed Funds Rate', r: 55, x: 330, y: 330, color: '#10b981' },
-            { id: 'treasury2', label: '2Y Treasury', r: 42, x: 180, y: 180, color: '#334155' },
-            { id: 'prime', label: 'Prime Rate', r: 42, x: 480, y: 180, color: '#334155' },
-            { id: 'mortgage30', label: '30Y Mortgage', r: 42, x: 120, y: 330, color: '#334155' },
-            { id: 'auto_loan', label: 'Auto Loan', r: 42, x: 540, y: 330, color: '#334155' },
-            { id: 'creditcard', label: 'Credit Card', r: 42, x: 180, y: 480, color: '#334155' },
-            { id: 'inflation', label: 'Inflation', r: 38, x: 330, y: 120, color: '#334155' },
-            { id: 'unemployment', label: 'Unemployment', r: 38, x: 330, y: 540, color: '#334155' },
-            { id: 'housing', label: 'Housing Prices', r: 35, x: 80, y: 250, color: '#334155' },
-            { id: 'sp500', label: 'S&P 500', r: 35, x: 580, y: 250, color: '#334155' },
-            { id: 'gold', label: 'Gold', r: 35, x: 150, y: 420, color: '#334155' },
-            { id: 'bitcoin', label: 'Bitcoin', r: 35, x: 510, y: 420, color: '#334155' }
+            { id: 'fed', label: 'Fed Funds Rate', x: 320, y: 320, r: 58, color: '#10b981' },
+            { id: 'treasury2', label: '2Y Treasury', x: 180, y: 180, r: 42, color: '#334155' },
+            { id: 'prime', label: 'Prime Rate', x: 460, y: 180, r: 42, color: '#334155' },
+            { id: 'mortgage30', label: '30Y Mortgage', x: 120, y: 320, r: 42, color: '#334155' },
+            { id: 'auto_loan', label: 'Auto Loan', x: 520, y: 320, r: 42, color: '#334155' },
+            { id: 'creditcard', label: 'Credit Card', x: 180, y: 460, r: 42, color: '#334155' },
+            { id: 'inflation', label: 'Inflation', x: 320, y: 120, r: 38, color: '#334155' },
+            { id: 'unemployment', label: 'Unemployment', x: 320, y: 520, r: 38, color: '#334155' },
+            { id: 'housing', label: 'Housing Prices', x: 80, y: 240, r: 35, color: '#334155' },
+            { id: 'sp500', label: 'S&P 500', x: 560, y: 240, r: 35, color: '#334155' },
+            { id: 'gold', label: 'Gold', x: 150, y: 420, r: 35, color: '#334155' },
+            { id: 'bitcoin', label: 'Bitcoin', x: 490, y: 420, r: 35, color: '#334155' }
         ];
 
-        function createWeb() {
+        function createRippleWeb() {
             const svg = document.getElementById('canvas');
             svg.innerHTML = '';
 
             // Concentric rings
             for (let i = 1; i <= 4; i++) {
                 const ring = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-                ring.setAttribute("cx", "330");
-                ring.setAttribute("cy", "330");
-                ring.setAttribute("r", 80 + i * 70);
+                ring.setAttribute("cx", "320");
+                ring.setAttribute("cy", "320");
+                ring.setAttribute("r", 90 + i * 75);
                 ring.setAttribute("fill", "none");
-                ring.setAttribute("stroke", "#27272a");
-                ring.setAttribute("stroke-width", "28");
+                ring.setAttribute("stroke", i === 4 ? "#10b98122" : "#27272a");
+                ring.setAttribute("stroke-width", "32");
                 svg.appendChild(ring);
             }
 
@@ -119,49 +181,49 @@
                 circle.setAttribute("r", node.r);
                 circle.setAttribute("fill", node.color);
                 circle.setAttribute("stroke", "#111113");
-                circle.setAttribute("stroke-width", "6");
-                circle.setAttribute("style", "cursor:pointer");
+                circle.setAttribute("stroke-width", "8");
+                circle.style.cursor = "pointer";
                 circle.onclick = () => selectNode(node);
                 svg.appendChild(circle);
 
                 const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
                 text.setAttribute("x", node.x);
-                text.setAttribute("y", node.y + 5);
+                text.setAttribute("y", node.y + 6);
                 text.setAttribute("text-anchor", "middle");
                 text.setAttribute("fill", "#fff");
                 text.setAttribute("font-size", "13");
                 text.setAttribute("font-weight", "600");
-                text.textContent = node.label.length > 12 ? node.label.substring(0,10)+".." : node.label;
+                text.textContent = node.label.length > 13 ? node.label.substring(0,11) + ".." : node.label;
                 svg.appendChild(text);
             });
 
-            // Center Fed
+            // Center Fed Orb
             const fed = document.createElementNS("http://www.w3.org/2000/svg", "circle");
-            fed.setAttribute("cx", "330");
-            fed.setAttribute("cy", "330");
-            fed.setAttribute("r", "55");
+            fed.setAttribute("cx", "320");
+            fed.setAttribute("cy", "320");
+            fed.setAttribute("r", "58");
             fed.setAttribute("fill", "#10b981");
             fed.setAttribute("stroke", "#34d399");
-            fed.setAttribute("stroke-width", "18");
+            fed.setAttribute("stroke-width", "22");
             svg.appendChild(fed);
         }
 
         function selectNode(node) {
             document.getElementById('nodeTitle').textContent = node.label;
             document.getElementById('nodeProjected').innerHTML = `<span style="color:#34d399">Base + impact</span>`;
-            document.getElementById('nodeDeviation').innerHTML = `<span style="color:#22c55e">↓ or ↑</span>`;
+            document.getElementById('nodeDeviation').innerHTML = `<span style="color:#22c55e">Change shown here</span>`;
             document.getElementById('nodeDesc').textContent = node.desc || "This metric is directly affected by Fed rate decisions.";
         }
 
         window.onload = function() {
-            createWeb();
+            createRippleWeb();
 
             document.getElementById('pctSlider').addEventListener('input', function() {
                 document.getElementById('pctValue').textContent = (this.value >= 0 ? '+' : '') + this.value + '%';
             });
 
             document.getElementById('glossaryBtn').addEventListener('click', () => {
-                alert("Glossary coming soon.\n\nThis tool shows how changes in the Fed rate ripple out to affect your mortgage, car payments, credit cards, and daily life.");
+                alert("Glossary coming in next update.\n\nThis tool shows how changes in the Fed rate ripple out to affect your mortgage, car payments, credit cards, and daily life.");
             });
 
             document.getElementById('resetBtn').addEventListener('click', () => {
