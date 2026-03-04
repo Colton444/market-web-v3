@@ -70,7 +70,7 @@
             </div>
             <div style="flex:1;position:relative;">
                 <div id="cy"></div>
-                <div id="status" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#34d399;font-size:18px;pointer-events:none;">Loading live FRED data...</div>
+                <div id="status" style="position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);color:#34d399;font-size:18px;pointer-events:none;">Fetching latest FRED data...</div>
             </div>
         </div>
     </div>
@@ -128,6 +128,20 @@
             }
             loadGraph();
         }
+
+        const elements = [
+            { data: { id: 'fed', label: nodeLabels.fed, group: 'policy', size: 118, color: '#10b981', borderWidth: 16 } },
+            { data: { id: 'mortgage30', label: nodeLabels.mortgage30, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'auto_loan', label: nodeLabels.auto_loan, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'creditcard', label: nodeLabels.creditcard, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'inflation', label: nodeLabels.inflation, group: 'macro', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'unemployment', label: nodeLabels.unemployment, group: 'macro', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'housing', label: nodeLabels.housing, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'sp500', label: nodeLabels.sp500, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'gold', label: nodeLabels.gold, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            { data: { id: 'bitcoin', label: nodeLabels.bitcoin, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
+            ...['mortgage30','auto_loan','creditcard','inflation','unemployment','housing','sp500','gold','bitcoin'].map(t => ({ data: { source: 'fed', target: t } }))
+        ];
 
         function loadGraph() {
             document.getElementById('status').innerHTML = 'Loading graph...';
@@ -235,14 +249,14 @@
             document.getElementById('glossaryModal').style.display = 'none';
         }
 
-        const elements = [ /* same elements as before */ 
-            { data: { id: 'fed', label: nodeLabels.fed, group: 'policy', size: 118, color: '#10b981', borderWidth: 16 } },
-            { data: { id: 'mortgage30', label: nodeLabels.mortgage30, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'auto_loan', label: nodeLabels.auto_loan, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'creditcard', label: nodeLabels.creditcard, group: 'consumer', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'inflation', label: nodeLabels.inflation, group: 'macro', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'unemployment', label: nodeLabels.unemployment, group: 'macro', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'housing', label: nodeLabels.housing, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'sp500', label: nodeLabels.sp500, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: { id: 'gold', label: nodeLabels.gold, group: 'assets', size: 88, color: '#334155', borderWidth: 8 } },
-            { data: {
+        window.onload = function() {
+            loadRealData();
+            document.getElementById('pctSlider').addEventListener('input', function() { updateImpacts(this.value); });
+            document.getElementById('loadBtn').addEventListener('click', loadGraph);
+            document.getElementById('resetBtn').addEventListener('click', resetSimulation);
+            document.getElementById('glossaryBtn').addEventListener('click', showGlossary);
+            document.getElementById('closeGlossary').addEventListener('click', hideGlossary);
+        };
+    </script>
+</body>
+</html>
